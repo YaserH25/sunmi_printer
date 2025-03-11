@@ -9,6 +9,55 @@ class SunmiPrinter {
   // Private constructor to prevent instantiation.
   SunmiPrinter._();
 
+  /// Checks if the printer is initialized and ready for printing
+  ///
+  /// Returns true if printer is initialized, false otherwise
+  static Future<bool> isPrinterInitialized() async {
+    return await SunmiPrinterPlusPlatform.instance.isPrinterInitialized();
+  }
+
+  /// Attempts to reinitialize the printer if it's not ready
+  ///
+  /// Returns true if reinitialization was successful, false otherwise
+  static Future<bool> reinitializePrinter() async {
+    return await SunmiPrinterPlusPlatform.instance.reinitializePrinter();
+  }
+
+  /// Checks printer initialization status and resets if needed
+  ///
+  /// [autoReinitialize]: If true, attempts to reinitialize printer when not ready
+  /// Returns true if printer is ready or successfully reinitialized, false otherwise
+  static Future<bool> ensurePrinterReady({bool autoReinitialize = true}) async {
+    final initialized = await isPrinterInitialized();
+    if (initialized) {
+      return true;
+    }
+    
+    if (autoReinitialize) {
+      return await reinitializePrinter();
+    }
+    
+    return false;
+  }
+
+  /// Executes a printer function with initialization check
+  ///
+  /// [operation]: The printer operation to execute
+  /// [defaultValue]: Value to return if initialization fails
+  /// [autoReinitialize]: Whether to attempt reinitialization if needed
+  /// Returns the result of [operation] if printer is ready, or [defaultValue] if not
+  static Future<T> withPrinterCheck<T>({
+    required Future<T> Function() operation,
+    required T defaultValue,
+    bool autoReinitialize = true
+  }) async {
+    final isReady = await ensurePrinterReady(autoReinitialize: autoReinitialize);
+    if (isReady) {
+      return await operation();
+    }
+    return defaultValue;
+  }
+
   /// Prints plain text with an optional [SunmiTextStyle].
   ///
   /// [text]: The text to print.
@@ -16,12 +65,16 @@ class SunmiPrinter {
   ///
   /// Returns a [String] indicating the result of the print operation, or `null`.
   static Future<String?> printText(String text, {SunmiTextStyle? style}) async {
-    final printData = {
-      "text": text,
-      if (style != null) ...style.toMap(),
-    };
-
-    return await SunmiPrinterPlusPlatform.instance.printText(printData);
+    return await withPrinterCheck(
+      operation: () async {
+        final printData = {
+          "text": text,
+          if (style != null) ...style.toMap(),
+        };
+        return await SunmiPrinterPlusPlatform.instance.printText(printData);
+      },
+      defaultValue: "PRINTER_NOT_READY"
+    );
   }
 
   /// Initializes the printer.
@@ -156,12 +209,16 @@ class SunmiPrinter {
   ///
   /// Returns a [String] indicating the result of the print operation, or `null`.
   static Future<String?> printQRCode(String text, {SunmiQrcodeStyle? style}) async {
-    final printData = {
-      "text": text,
-      if (style != null) ...style.toMap(),
-    };
-
-    return await SunmiPrinterPlusPlatform.instance.printQrcode(printData);
+    return await withPrinterCheck(
+      operation: () async {
+        final printData = {
+          "text": text,
+          if (style != null) ...style.toMap(),
+        };
+        return await SunmiPrinterPlusPlatform.instance.printQrcode(printData);
+      },
+      defaultValue: "PRINTER_NOT_READY"
+    );
   }
 
   /// Prints a barcode with optional [SunmiBarcodeStyle].
@@ -171,11 +228,16 @@ class SunmiPrinter {
   ///
   /// Returns a [String] indicating the result of the print operation, or `null`.
   static Future<String?> printBarCode(String text, {SunmiBarcodeStyle? style}) async {
-    final printData = {
-      "text": text,
-      if (style != null) ...style.toMap(),
-    };
-    return await SunmiPrinterPlusPlatform.instance.printBarcode(printData);
+    return await withPrinterCheck(
+      operation: () async {
+        final printData = {
+          "text": text,
+          if (style != null) ...style.toMap(),
+        };
+        return await SunmiPrinterPlusPlatform.instance.printBarcode(printData);
+      },
+      defaultValue: "PRINTER_NOT_READY"
+    );
   }
 
   /// Prints a line using an optional line [type].

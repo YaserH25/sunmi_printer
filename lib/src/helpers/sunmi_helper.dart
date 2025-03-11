@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 /// Sunmi Helper
 /// class that with generic convertion to String to Uint8List
@@ -48,5 +49,43 @@ class SunmiHelper {
 
     // Return the image data as a Uint8List.
     return fileUnit8List;
+  }
+}
+
+/// Extension with helper methods for printer operations
+extension SunmiPrinterHelper on SunmiPrinter {
+  
+  /// Checks if printer is ready and attempts to reinitialize if needed
+  /// 
+  /// Returns true if printer is ready or was successfully reinitialized
+  /// Returns false if printer initialization failed
+  /// 
+  /// Set [autoReinitialize] to false to skip auto reinitialization
+  Future<bool> ensurePrinterReady({bool autoReinitialize = true}) async {
+    final initialized = await SunmiPrinterPlusPlatform.instance.isPrinterInitialized();
+    if (initialized) {
+      return true;
+    }
+    
+    if (autoReinitialize) {
+      return await SunmiPrinterPlusPlatform.instance.reinitializePrinter();
+    }
+    
+    return false;
+  }
+  
+  /// Executes a printer function safely with initialization check
+  /// 
+  /// If the printer is not initialized, it will attempt to reinitialize it
+  /// If reinitialization fails, the operation will not be performed
+  /// 
+  /// Returns the result of [operation] if printer is ready
+  /// Returns [defaultValue] if printer cannot be initialized
+  Future<T> withPrinterCheck<T>(Future<T> Function() operation, T defaultValue) async {
+    final isReady = await ensurePrinterReady();
+    if (isReady) {
+      return await operation();
+    }
+    return defaultValue;
   }
 }

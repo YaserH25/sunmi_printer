@@ -144,4 +144,18 @@ abstract class SunmiPrinterPlusPlatform extends PlatformInterface {
   Future<bool> isDrawerOpen() async {
     throw UnimplementedError('isDrawerOpen() has not been implemented.');
   }
+
+  /// Check if the printer is initialized.
+  /// 
+  /// Returns true if the printer is ready for use, false otherwise.
+  Future<bool> isPrinterInitialized() async {
+    throw UnimplementedError('isPrinterInitialized() has not been implemented.');
+  }
+  
+  /// Attempt to reinitialize the printer if it's not ready.
+  /// 
+  /// Returns true if reinitialization was successful, false otherwise.
+  Future<bool> reinitializePrinter() async {
+    throw UnimplementedError('reinitializePrinter() has not been implemented.');
+  }
 }

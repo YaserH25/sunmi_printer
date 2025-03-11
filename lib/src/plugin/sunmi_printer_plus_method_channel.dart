@@ -130,4 +130,14 @@ class MethodChannelSunmiPrinterPlus extends SunmiPrinterPlusPlatform {
   Future<bool> isDrawerOpen() async {
     return await methodChannel.invokeMethod<bool>('isDrawerOpen') ?? false;
   }
+
+  @override
+  Future<bool> isPrinterInitialized() async {
+    return await methodChannel.invokeMethod<bool>('isPrinterInitialized') ?? false;
+  }
+
+  @override
+  Future<bool> reinitializePrinter() async {
+    return await methodChannel.invokeMethod<bool>('reinitializePrinter') ?? false;
+  }
 }
